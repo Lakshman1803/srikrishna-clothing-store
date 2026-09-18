@@ -1,0 +1,18 @@
+{% extends "base_admin.html" %}
+{% block title %}Customers - SRI KRISHNA{% endblock %}
+{% block header %}Customers{% endblock %}
+{% block content %}
+<form method="get" class="mb-4"><input type="text" name="q" value="{{ q }}" placeholder="Search name / mobile / email" class="border rounded px-4 py-2 w-full max-w-md"></form>
+<div class="card overflow-x-auto">
+  <table class="sk-table">
+    <tr><th>Name</th><th>Mobile</th><th>Total Purchases</th><th>Total Spent</th><th>Loyalty Points</th><th>Joined</th><th></th></tr>
+    {% for c in customers %}
+    <tr>
+      <td>{{ c.name }}</td><td>{{ c.mobile }}</td><td>{{ c.total_purchases }}</td>
+      <td>₹{{ c.total_amount_spent|floatformat:0 }}</td><td>{{ c.loyalty_points }}</td><td>{{ c.date_joined|date:"d M Y" }}</td>
+      <td><a href="{% url 'customers:customer_detail' c.pk %}" class="btn btn-outline text-xs">View</a></td>
+    </tr>
+    {% empty %}<tr><td colspan="7" class="text-gray-400 text-center py-6">No customers yet.</td></tr>{% endfor %}
+  </table>
+</div>
+{% endblock %}

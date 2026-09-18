@@ -1,0 +1,24 @@
+{% extends "base_admin.html" %}
+{% block title %}{{ customer.name }} - SRI KRISHNA{% endblock %}
+{% block header %}{{ customer.name }}{% endblock %}
+{% block content %}
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+  <div class="card"><div class="text-xs text-gray-500">Mobile</div><div class="font-bold">{{ customer.mobile }}</div></div>
+  <div class="card"><div class="text-xs text-gray-500">Total Purchases</div><div class="font-bold">{{ customer.total_purchases }}</div></div>
+  <div class="card"><div class="text-xs text-gray-500">Total Spent</div><div class="font-bold">₹{{ customer.total_amount_spent|floatformat:0 }}</div></div>
+  <div class="card"><div class="text-xs text-gray-500">Loyalty Points</div><div class="font-bold">{{ customer.loyalty_points }}</div></div>
+</div>
+<div class="card overflow-x-auto mb-6">
+  <div class="font-semibold mb-3">Purchase History</div>
+  <table class="sk-table">
+    <tr><th>Invoice</th><th>Date</th><th>Total</th><th>Payment</th><th>Status</th><th></th></tr>
+    {% for s in sales %}
+    <tr>
+      <td>{{ s.invoice_number }}</td><td>{{ s.created_at|date:"d M Y" }}</td><td>₹{{ s.grand_total }}</td>
+      <td>{{ s.payments.first.get_method_display }}</td><td>{{ s.get_status_display }}</td>
+      <td><a href="{% url 'sales:invoice' s.pk %}" class="btn btn-outline text-xs">Invoice</a></td>
+    </tr>
+    {% empty %}<tr><td colspan="6" class="text-gray-400 text-center py-6">No purchases yet.</td></tr>{% endfor %}
+  </table>
+</div>
+{% endblock %}

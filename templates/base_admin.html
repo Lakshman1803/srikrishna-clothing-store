@@ -1,0 +1,61 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" x-data="{ dark: localStorage.getItem('sk-dark') === 'true' }" x-init="$watch('dark', v => localStorage.setItem('sk-dark', v))" :class="{ 'dark': dark }">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}SRI KRISHNA Admin{% endblock %}</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>tailwind.config = { darkMode: 'class', theme: { extend: { colors: { brand: { 50:'#fdf4f0',100:'#fbe4da',200:'#f5c3ac',300:'#eea27e',400:'#e07f4c',500:'#c4602c',600:'#a3491f',700:'#7f3818',800:'#5c2a13',900:'#401d0d' } } } } }</script>
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+<link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-100 min-h-screen">
+<div class="flex min-h-screen">
+  <aside class="w-64 bg-brand-800 text-white flex-shrink-0 hidden md:flex flex-col">
+    <div class="p-5 border-b border-brand-700">
+      <div class="text-xl font-bold tracking-wide">SRI KRISHNA</div>
+      <div class="text-xs text-brand-200">Fashion for Every Generation</div>
+    </div>
+    <nav class="flex-1 overflow-y-auto py-3 text-sm">
+      {% url 'dashboard:home' as u1 %}<a href="{{ u1 }}" class="sidebar-link {% if request.path == u1 %}active{% endif %}">📊 Dashboard</a>
+      {% url 'sales:pos' as u2 %}<a href="{{ u2 }}" class="sidebar-link {% if request.path == u2 %}active{% endif %}">🧾 POS Billing</a>
+      {% url 'sales:sale_list' as u3 %}<a href="{{ u3 }}" class="sidebar-link {% if request.path == u3 %}active{% endif %}">💰 Sales</a>
+      <a href="/admin/catalog/product/" class="sidebar-link">👕 Products</a>
+      {% url 'inventory:stock_list' as u4 %}<a href="{{ u4 }}" class="sidebar-link {% if request.path == u4 %}active{% endif %}">📦 Inventory</a>
+      {% url 'customers:customer_list' as u5 %}<a href="{{ u5 }}" class="sidebar-link {% if request.path == u5 %}active{% endif %}">🧑‍🤝‍🧑 Customers</a>
+      {% url 'purchases:purchase_list' as u6 %}<a href="{{ u6 }}" class="sidebar-link {% if request.path == u6 %}active{% endif %}">🚚 Purchases</a>
+      {% url 'suppliers:supplier_list' as u7 %}<a href="{{ u7 }}" class="sidebar-link {% if request.path == u7 %}active{% endif %}">🏭 Suppliers</a>
+      {% url 'returns_exchanges:return_list' as u8 %}<a href="{{ u8 }}" class="sidebar-link {% if request.path == u8 %}active{% endif %}">↩️ Returns &amp; Exchanges</a>
+      {% url 'expenses:expense_list' as u9 %}<a href="{{ u9 }}" class="sidebar-link {% if request.path == u9 %}active{% endif %}">💸 Expenses</a>
+      {% url 'accounts:employee_list' as u10 %}<a href="{{ u10 }}" class="sidebar-link {% if request.path == u10 %}active{% endif %}">👥 Employees</a>
+      {% url 'offers:offer_list' as u11 %}<a href="{{ u11 }}" class="sidebar-link {% if request.path == u11 %}active{% endif %}">🎁 Offers</a>
+      {% url 'dashboard:reports' as u12 %}<a href="{{ u12 }}" class="sidebar-link {% if request.path == u12 %}active{% endif %}">📈 Reports</a>
+      {% url 'accounts:audit_log' as u13 %}<a href="{{ u13 }}" class="sidebar-link {% if request.path == u13 %}active{% endif %}">🛡️ Audit Log</a>
+      {% url 'shopsettings:edit' as u14 %}<a href="{{ u14 }}" class="sidebar-link {% if request.path == u14 %}active{% endif %}">⚙️ Settings</a>
+      <a href="/" class="sidebar-link">🌐 View Storefront</a>
+    </nav>
+    <div class="p-4 border-t border-brand-700 text-xs">
+      <div class="mb-2">{{ request.user.get_full_name|default:request.user.username }} · {{ request.user.get_role_display }}</div>
+      <form action="{% url 'accounts:logout' %}" method="post">{% csrf_token %}
+        <button class="text-brand-200 hover:text-white">Logout</button>
+      </form>
+    </div>
+  </aside>
+  <div class="flex-1 flex flex-col min-w-0">
+    <header class="bg-white dark:bg-gray-800 border-b dark:border-gray-700 px-4 md:px-6 py-3 flex items-center justify-between">
+      <h1 class="text-lg font-semibold">{% block header %}{% endblock %}</h1>
+      <button @click="dark = !dark" class="text-sm px-3 py-1.5 rounded border dark:border-gray-600">🌓 Toggle Theme</button>
+    </header>
+    <main class="flex-1 p-4 md:p-6">
+      {% if messages %}
+        {% for message in messages %}
+          <div class="mb-3 px-4 py-2 rounded {% if message.tags == 'error' %}bg-red-100 text-red-800{% else %}bg-green-100 text-green-800{% endif %}">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,69 @@
+{% extends "storefront/public_base.html" %}
+{% block title %}SRI KRISHNA - Fashion for Every Generation{% endblock %}
+{% block content %}
+<section class="bg-gradient-to-br from-brand-700 to-brand-500 text-white">
+  <div class="max-w-7xl mx-auto px-4 py-20 text-center">
+    <h1 class="text-4xl md:text-6xl font-extrabold mb-3">SRI KRISHNA</h1>
+    <p class="text-lg md:text-2xl text-brand-100 mb-8">Fashion for Every Generation</p>
+    <div class="flex flex-wrap justify-center gap-3">
+      <a href="{% url 'storefront:category' 'men' %}" class="bg-white text-brand-700 font-semibold px-6 py-3 rounded-full hover:bg-brand-50">Shop Men</a>
+      <a href="{% url 'storefront:category' 'women' %}" class="bg-white text-brand-700 font-semibold px-6 py-3 rounded-full hover:bg-brand-50">Shop Women</a>
+      <a href="{% url 'storefront:category' 'kids' %}" class="bg-white text-brand-700 font-semibold px-6 py-3 rounded-full hover:bg-brand-50">Shop Kids</a>
+    </div>
+  </div>
+</section>
+
+{% if running_offers %}
+<section class="max-w-7xl mx-auto px-4 py-8">
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    {% for o in running_offers %}
+    <div class="bg-brand-50 dark:bg-gray-800 border border-brand-200 dark:border-gray-700 rounded-xl p-4">
+      <div class="font-bold text-brand-700">{{ o.title }}</div>
+      <div class="text-sm text-gray-500">{{ o.description|truncatewords:15 }}</div>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+<section class="max-w-7xl mx-auto px-4 py-6">
+  <h2 class="text-2xl font-bold mb-4">Shop by Category</h2>
+  <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+    {% for c in categories %}
+    <a href="{% url 'storefront:category' c.slug %}" class="group text-center">
+      <div class="aspect-square rounded-xl bg-gradient-to-br from-brand-100 to-brand-300 dark:from-gray-700 dark:to-gray-800 flex items-center justify-center text-4xl group-hover:scale-105 transition">{{ c.icon|default:"👕" }}</div>
+      <div class="mt-2 font-semibold">{{ c.name }}</div>
+    </a>
+    {% endfor %}
+  </div>
+</section>
+
+{% if new_arrivals %}
+<section class="max-w-7xl mx-auto px-4 py-8">
+  <div class="flex justify-between items-center mb-4"><h2 class="text-2xl font-bold">New Arrivals</h2><a href="{% url 'storefront:new_arrivals' %}" class="text-brand-600 text-sm">View all →</a></div>
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+    {% for p in new_arrivals %}{% include "storefront/_product_card.html" with p=p %}{% endfor %}
+  </div>
+</section>
+{% endif %}
+
+{% if best_sellers %}
+<section class="max-w-7xl mx-auto px-4 py-8">
+  <h2 class="text-2xl font-bold mb-4">Best Sellers</h2>
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+    {% for p in best_sellers %}{% include "storefront/_product_card.html" with p=p %}{% endfor %}
+  </div>
+</section>
+{% endif %}
+
+{% for cat, products in category_sections %}
+{% if products %}
+<section class="max-w-7xl mx-auto px-4 py-8">
+  <div class="flex justify-between items-center mb-4"><h2 class="text-2xl font-bold">{{ cat.name }}'s Collection</h2><a href="{% url 'storefront:category' cat.slug %}" class="text-brand-600 text-sm">View all →</a></div>
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+    {% for p in products %}{% include "storefront/_product_card.html" with p=p %}{% endfor %}
+  </div>
+</section>
+{% endif %}
+{% endfor %}
+{% endblock %}

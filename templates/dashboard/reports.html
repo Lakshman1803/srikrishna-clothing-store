@@ -1,0 +1,72 @@
+{% extends "base_admin.html" %}
+{% block title %}Reports - SRI KRISHNA{% endblock %}
+{% block header %}Reports{% endblock %}
+{% block content %}
+<form method="get" class="card mb-6 flex flex-wrap items-end gap-3">
+  <div>
+    <label class="text-xs text-gray-500 block mb-1">Date Range</label>
+    <select name="range" onchange="this.form.submit()" class="border rounded px-3 py-2 text-sm">
+      <option value="today" {% if selected_range == "today" %}selected{% endif %}>Today</option>
+      <option value="yesterday" {% if selected_range == "yesterday" %}selected{% endif %}>Yesterday</option>
+      <option value="this_week" {% if selected_range == "this_week" %}selected{% endif %}>This Week</option>
+      <option value="this_month" {% if selected_range == "this_month" %}selected{% endif %}>This Month</option>
+      <option value="last_month" {% if selected_range == "last_month" %}selected{% endif %}>Last Month</option>
+      <option value="this_year" {% if selected_range == "this_year" %}selected{% endif %}>This Year</option>
+    </select>
+  </div>
+  <div class="text-sm text-gray-500">Showing: {{ start }} to {{ end }}</div>
+  <div class="ml-auto flex gap-2">
+    <a href="{% url 'export_report' 'sales' %}?range={{ selected_range }}" class="btn btn-outline">⬇ Sales CSV</a>
+    <a href="{% url 'export_report' 'stock' %}?range={{ selected_range }}" class="btn btn-outline">⬇ Stock CSV</a>
+    <a href="{% url 'export_report' 'expenses' %}?range={{ selected_range }}" class="btn btn-outline">⬇ Expenses CSV</a>
+    <a href="{% url 'export_report' 'purchases' %}?range={{ selected_range }}" class="btn btn-outline">⬇ Purchases CSV</a>
+    <button type="button" onclick="window.print()" class="btn btn-primary">🖨 Print</button>
+  </div>
+</form>
+
+<div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+  <div class="card"><div class="text-xs text-gray-500">Total Sales</div><div class="text-xl font-bold">₹{{ total_sales|floatformat:0 }}</div></div>
+  <div class="card"><div class="text-xs text-gray-500">Orders</div><div class="text-xl font-bold">{{ total_orders }}</div></div>
+  <div class="card"><div class="text-xs text-gray-500">GST Collected</div><div class="text-xl font-bold">₹{{ total_gst|floatformat:0 }}</div></div>
+  <div class="card"><div class="text-xs text-gray-500">Discounts Given</div><div class="text-xl font-bold">₹{{ total_discount|floatformat:0 }}</div></div>
+  {% if profit is not None %}
+  <div class="card"><div class="text-xs text-gray-500">Net Profit</div><div class="text-xl font-bold text-green-600">₹{{ profit|floatformat:0 }}</div></div>
+  {% else %}
+  <div class="card"><div class="text-xs text-gray-500">Net Profit</div><div class="text-sm text-gray-400 mt-2">Restricted</div></div>
+  {% endif %}
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+  <div class="card">
+    <div class="font-semibold mb-3">Top Products</div>
+    <table class="sk-table">
+      <tr><th>Product</th><th>SKU</th><th>Qty Sold</th><th>Total</th></tr>
+      {% for p in product_sales %}
+      <tr><td>{{ p.name }}</td><td>{{ p.sku }}</td><td>{{ p.qty }}</td><td>₹{{ p.total|floatformat:0 }}</td></tr>
+      {% empty %}<tr><td colspan="4" class="text-gray-400">No sales in this period.</td></tr>{% endfor %}
+    </table>
+  </div>
+  <div class="card">
+    <div class="font-semibold mb-3">Employee Sales Report</div>
+    <table class="sk-table">
+      <tr><th>Employee</th><th>Orders</th><th>Total</th></tr>
+      {% for e in employee_sales %}
+      <tr><td>{{ e.name }}</td><td>{{ e.orders }}</td><td>₹{{ e.total|floatformat:0 }}</td></tr>
+      {% empty %}<tr><td colspan="3" class="text-gray-400">No sales in this period.</td></tr>{% endfor %}
+    </table>
+  </div>
+</div>
+
+<div class="card">
+  <div class="font-semibold mb-3">Low / Out of Stock Report</div>
+  <table class="sk-table">
+    <tr><th>Product</th><th>Stock</th><th>Min Level</th><th>Status</th></tr>
+    {% for p in low_stock %}
+    <tr>
+      <td>{{ p.name }}</td><td>{{ p.total_stock }}</td><td>{{ p.minimum_stock }}</td>
+      <td>{% if p.is_out_of_stock %}<span class="badge badge-red">Out of Stock</span>{% else %}<span class="badge badge-yellow">Low Stock</span>{% endif %}</td>
+    </tr>
+    {% empty %}<tr><td colspan="4" class="text-gray-400">Everything is well stocked.</td></tr>{% endfor %}
+  </table>
+</div>
+{% endblock %}

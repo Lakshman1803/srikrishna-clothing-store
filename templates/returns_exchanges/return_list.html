@@ -1,0 +1,16 @@
+{% extends "base_admin.html" %}
+{% block title %}Returns & Exchanges{% endblock %}{% block header %}Returns &amp; Exchanges{% endblock %}
+{% block content %}
+<div class="mb-4"><a href="{% url 'returns_exchanges:return_create' %}" class="btn btn-primary">+ New Return / Exchange</a></div>
+<div class="card overflow-x-auto">
+  <table class="sk-table">
+    <tr><th>Return #</th><th>Invoice</th><th>Type</th><th>Resolution</th><th>Refund</th><th>Date</th></tr>
+    {% for r in returns %}
+    <tr>
+      <td>{{ r.return_number }}</td><td>{{ r.sale.invoice_number }}</td><td>{{ r.get_return_type_display }}</td>
+      <td>{{ r.get_resolution_display }}</td><td>₹{{ r.refund_amount }}</td><td>{{ r.date|date:"d M Y" }}</td>
+    </tr>
+    {% empty %}<tr><td colspan="6" class="text-gray-400 text-center py-6">No returns processed yet.</td></tr>{% endfor %}
+  </table>
+</div>
+{% endblock %}

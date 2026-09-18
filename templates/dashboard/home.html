@@ -1,0 +1,70 @@
+{% extends "base_admin.html" %}
+{% block title %}Dashboard - SRI KRISHNA{% endblock %}
+{% block header %}Dashboard{% endblock %}
+{% block content %}
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+  <div class="card"><div class="text-xs text-gray-500">Today's Sales</div><div class="text-2xl font-bold text-brand-600">₹{{ today_sales|floatformat:0 }}</div></div>
+  <div class="card"><div class="text-xs text-gray-500">Today's Orders</div><div class="text-2xl font-bold">{{ today_orders }}</div></div>
+  {% if today_profit is not None %}
+  <div class="card"><div class="text-xs text-gray-500">Today's Profit</div><div class="text-2xl font-bold text-green-600">₹{{ today_profit|floatformat:0 }}</div></div>
+  {% else %}
+  <div class="card"><div class="text-xs text-gray-500">Today's Profit</div><div class="text-sm text-gray-400 mt-2">Restricted</div></div>
+  {% endif %}
+  <div class="card"><div class="text-xs text-gray-500">Today's Expenses</div><div class="text-2xl font-bold">₹{{ today_expenses|floatformat:0 }}</div></div>
+  <div class="card"><div class="text-xs text-gray-500">Total Customers</div><div class="text-2xl font-bold">{{ total_customers }}</div></div>
+  <div class="card"><div class="text-xs text-gray-500">Total Products</div><div class="text-2xl font-bold">{{ total_products }}</div></div>
+  <div class="card"><div class="text-xs text-gray-500">Total Stock</div><div class="text-2xl font-bold">{{ total_stock }}</div></div>
+  <div class="card"><div class="text-xs text-gray-500">Low Stock</div><div class="text-2xl font-bold text-red-600">{{ low_stock_count }}</div></div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+  <div class="card lg:col-span-2">
+    <div class="font-semibold mb-3">Sales - Last 7 Days</div>
+    <canvas id="salesChart" height="90"></canvas>
+  </div>
+  <div class="card">
+    <div class="font-semibold mb-3">Payment Method Split</div>
+    <canvas id="paymentChart" height="200"></canvas>
+  </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+  <div class="card">
+    <div class="font-semibold mb-3">Category-wise Sales</div>
+    <table class="sk-table">
+      <tr><th>Category</th><th>Total Sales</th></tr>
+      {% for c in category_sales %}<tr><td>{{ c.cat }}</td><td>₹{{ c.total|floatformat:0 }}</td></tr>{% endfor %}
+    </table>
+  </div>
+  <div class="card">
+    <div class="font-semibold mb-3">⚠️ Low Stock Alerts</div>
+    {% if low_stock_products %}
+    <table class="sk-table">
+      <tr><th>Product</th><th>Stock</th><th>Min</th></tr>
+      {% for p in low_stock_products %}
+      <tr><td>{{ p.name }}</td><td class="text-red-600 font-semibold">{{ p.total_stock }}</td><td>{{ p.minimum_stock }}</td></tr>
+      {% endfor %}
+    </table>
+    <p class="text-xs text-gray-500 mt-2">e.g. "Only {{ low_stock_products.0.total_stock }} pieces remaining for {{ low_stock_products.0.name }}."</p>
+    {% else %}
+    <p class="text-sm text-gray-500">All products are sufficiently stocked. 🎉</p>
+    {% endif %}
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script>
+new Chart(document.getElementById('salesChart'), {
+  type: 'line',
+  data: { labels: {{ chart_labels|safe }}, datasets: [{ label: 'Sales (₹)', data: {{ chart_data|safe }}, borderColor:'#c4602c', backgroundColor:'rgba(196,96,44,0.15)', fill:true, tension:0.3 }] },
+  options: { plugins:{legend:{display:false}} }
+});
+new Chart(document.getElementById('paymentChart'), {
+  type: 'doughnut',
+  data: {
+    labels: [{% for p in payment_dist %}'{{ p.method }}',{% endfor %}],
+    datasets: [{ data: [{% for p in payment_dist %}{{ p.total }},{% endfor %}], backgroundColor:['#c4602c','#e07f4c','#f5c3ac','#7f3818'] }]
+  }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,20 @@
+{% extends "base_admin.html" %}
+{% block title %}Expenses{% endblock %}{% block header %}Expenses{% endblock %}
+{% block content %}
+<div class="flex justify-between items-center mb-4">
+  <a href="{% url 'expenses:expense_add' %}" class="btn btn-primary">+ Add Expense</a>
+  <div class="text-sm text-gray-500">Total: <span class="font-bold text-brand-600">₹{{ total|floatformat:0 }}</span></div>
+</div>
+<div class="card overflow-x-auto">
+  <table class="sk-table">
+    <tr><th>Date</th><th>Category</th><th>Description</th><th>Amount</th><th>Method</th><th>Employee</th><th></th></tr>
+    {% for e in expenses %}
+    <tr>
+      <td>{{ e.date }}</td><td>{{ e.get_category_display }}</td><td>{{ e.description }}</td>
+      <td>₹{{ e.amount }}</td><td>{{ e.get_payment_method_display }}</td><td>{{ e.employee }}</td>
+      <td><a href="{% url 'expenses:expense_edit' e.pk %}" class="btn btn-outline text-xs">Edit</a></td>
+    </tr>
+    {% empty %}<tr><td colspan="7" class="text-gray-400 text-center py-6">No expenses recorded yet.</td></tr>{% endfor %}
+  </table>
+</div>
+{% endblock %}

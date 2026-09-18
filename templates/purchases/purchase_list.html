@@ -1,0 +1,18 @@
+{% extends "base_admin.html" %}
+{% block title %}Purchases{% endblock %}{% block header %}Purchases{% endblock %}
+{% block content %}
+<div class="mb-4"><a href="{% url 'purchases:purchase_create' %}" class="btn btn-primary">+ New Purchase Entry</a></div>
+<div class="card overflow-x-auto">
+  <table class="sk-table">
+    <tr><th>Invoice</th><th>Supplier</th><th>Date</th><th>Total</th><th>Status</th><th></th></tr>
+    {% for p in purchases %}
+    <tr>
+      <td>{{ p.purchase_invoice_number }}</td><td>{{ p.supplier.name }}</td><td>{{ p.date }}</td>
+      <td>₹{{ p.grand_total }}</td>
+      <td>{% if p.payment_status == "PAID" %}<span class="badge badge-green">Paid</span>{% elif p.payment_status == "PARTIALLY_PAID" %}<span class="badge badge-yellow">Partial</span>{% else %}<span class="badge badge-red">Pending</span>{% endif %}</td>
+      <td><a href="{% url 'purchases:purchase_detail' p.pk %}" class="btn btn-outline text-xs">View</a></td>
+    </tr>
+    {% empty %}<tr><td colspan="6" class="text-gray-400 text-center py-6">No purchases yet.</td></tr>{% endfor %}
+  </table>
+</div>
+{% endblock %}

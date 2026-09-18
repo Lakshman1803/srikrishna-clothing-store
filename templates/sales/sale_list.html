@@ -1,0 +1,29 @@
+{% extends "base_admin.html" %}
+{% block title %}Sales - SRI KRISHNA{% endblock %}
+{% block header %}Sales{% endblock %}
+{% block content %}
+<form method="get" class="mb-4">
+  <input type="text" name="q" value="{{ q }}" placeholder="Search invoice, customer, mobile, cashier..."
+         class="border rounded px-4 py-2 w-full max-w-md">
+</form>
+<div class="card overflow-x-auto">
+  <table class="sk-table">
+    <tr><th>Invoice</th><th>Date</th><th>Customer</th><th>Cashier</th><th>Total</th><th>Status</th><th></th></tr>
+    {% for s in sales %}
+    <tr>
+      <td>{{ s.invoice_number }}</td>
+      <td>{{ s.created_at|date:"d M Y, h:i A" }}</td>
+      <td>{{ s.customer.name|default:"Walk-in" }}</td>
+      <td>{{ s.cashier }}</td>
+      <td>₹{{ s.grand_total }}</td>
+      <td>
+        {% if s.status == "COMPLETED" %}<span class="badge badge-green">Completed</span>
+        {% elif s.status == "CANCELLED" %}<span class="badge badge-red">Cancelled</span>
+        {% else %}<span class="badge badge-yellow">Held</span>{% endif %}
+      </td>
+      <td><a href="{% url 'sales:invoice' s.pk %}" class="btn btn-outline text-xs">View Invoice</a></td>
+    </tr>
+    {% empty %}<tr><td colspan="7" class="text-gray-400 text-center py-6">No sales found.</td></tr>{% endfor %}
+  </table>
+</div>
+{% endblock %}

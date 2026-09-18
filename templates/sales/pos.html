@@ -1,0 +1,198 @@
+{% extends "base_admin.html" %}
+{% block title %}POS Billing - SRI KRISHNA{% endblock %}
+{% block header %}POS Billing{% endblock %}
+{% block content %}
+<div x-data="posApp()" x-init="init()" class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+  <!-- Left: search + results -->
+  <div class="lg:col-span-2 space-y-4">
+    <div class="card">
+      <div class="flex items-center gap-2 mb-2">
+        <span id="net-status" class="badge" :class="online ? 'badge-green' : 'badge-red'" x-text="online ? 'ONLINE' : 'OFFLINE'"></span>
+        <span x-show="syncing" class="badge badge-yellow">SYNCING</span>
+      </div>
+      <div class="flex gap-2">
+        <input type="text" x-model="query" @input.debounce.300ms="search()" placeholder="Scan barcode or search product name / SKU..."
+               class="flex-1 border rounded-lg px-4 py-3 text-lg" autofocus>
+        <button type="button" @click="openScanner()" class="btn btn-primary px-4 whitespace-nowrap">📷 Scan</button>
+      </div>
+
+      <!-- Camera barcode scanner modal -->
+      <div x-show="scannerOpen" x-cloak class="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4" @keydown.escape.window="closeScanner()">
+        <div class="bg-white dark:bg-gray-800 rounded-xl p-4 w-full max-w-md">
+          <div class="flex justify-between items-center mb-3">
+            <div class="font-semibold">Scan Product Barcode</div>
+            <button type="button" @click="closeScanner()" class="text-gray-400 hover:text-gray-700 text-xl leading-none">✕</button>
+          </div>
+          <video id="scanner-video" class="w-full rounded-lg bg-black aspect-square object-cover"></video>
+          <div class="text-xs text-gray-500 mt-2 text-center" x-text="scannerStatus"></div>
+          <p class="text-xs text-gray-400 mt-2 text-center">Point the camera at the product's barcode. It will be added automatically once recognised.</p>
+        </div>
+      </div>
+
+      <div class="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-80 overflow-y-auto" x-show="results.length">
+        <template x-for="r in results" :key="r.variant_id">
+          <div class="border rounded-lg p-3 flex items-center gap-3 hover:bg-brand-50 dark:hover:bg-gray-700 cursor-pointer" @click="addToCart(r)">
+            <div class="flex-1">
+              <div class="font-semibold text-sm" x-text="r.product_name"></div>
+              <div class="text-xs text-gray-500" x-text="r.size + ' · ' + r.color + ' · SKU: ' + r.sku"></div>
+              <div class="text-xs" :class="r.stock > 0 ? 'text-green-600' : 'text-red-600'" x-text="'Stock: ' + r.stock"></div>
+            </div>
+            <div class="text-brand-600 font-bold">₹<span x-text="r.price"></span></div>
+          </div>
+        </template>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="font-semibold mb-3">Cart</div>
+      <table class="sk-table">
+        <tr><th>Item</th><th>Qty</th><th>Price</th><th>GST%</th><th>Total</th><th></th></tr>
+        <template x-for="(item, idx) in cart" :key="idx">
+          <tr>
+            <td>
+              <div class="font-medium" x-text="item.product_name"></div>
+              <div class="text-xs text-gray-500" x-text="item.size + ' / ' + item.color"></div>
+            </td>
+            <td>
+              <input type="number" min="1" :max="item.stock" x-model.number="item.quantity" @change="recalc()" class="w-16 border rounded px-2 py-1">
+            </td>
+            <td>₹<span x-text="item.price"></span></td>
+            <td><span x-text="item.gst_percent"></span>%</td>
+            <td>₹<span x-text="(item.price * item.quantity).toFixed(2)"></span></td>
+            <td><button @click="cart.splice(idx,1); recalc()" class="text-red-500">✕</button></td>
+          </tr>
+        </template>
+        <tr x-show="cart.length === 0"><td colspan="6" class="text-gray-400 text-center py-6">Cart is empty. Search and click a product to add it.</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- Right: totals + checkout -->
+  <div class="space-y-4">
+    <form method="post" action="{% url 'sales:checkout' %}" @submit="return submitCheck()" id="checkoutForm">
+      {% csrf_token %}
+      <div class="card space-y-3">
+        <div>
+          <label class="text-xs text-gray-500">Customer Mobile (optional)</label>
+          <input type="text" name="customer_mobile" x-model="customerMobile" maxlength="10" placeholder="10-digit mobile" class="w-full border rounded px-3 py-2">
+        </div>
+        <div>
+          <label class="text-xs text-gray-500">Customer Name (new customer)</label>
+          <input type="text" name="customer_name" placeholder="Optional" class="w-full border rounded px-3 py-2">
+        </div>
+        <div>
+          <label class="text-xs text-gray-500">Coupon Code</label>
+          <input type="text" name="coupon_code" placeholder="Optional" class="w-full border rounded px-3 py-2">
+        </div>
+        <div>
+          <label class="text-xs text-gray-500">Overall Discount %</label>
+          <input type="number" name="overall_discount" x-model.number="overallDiscount" @input="recalc()" min="0" max="100" class="w-full border rounded px-3 py-2">
+        </div>
+        <div>
+          <label class="text-xs text-gray-500">Payment Method</label>
+          <select name="payment_method" x-model="paymentMethod" class="w-full border rounded px-3 py-2">
+            <option value="CASH">Cash</option>
+            <option value="UPI">UPI</option>
+            <option value="CARD">Card</option>
+            <option value="BANK_TRANSFER">Bank Transfer</option>
+          </select>
+        </div>
+        <div x-show="paymentMethod === 'UPI'" class="text-center text-xs text-gray-500">
+          A UPI QR code will be generated on the invoice page for the customer to scan.
+        </div>
+        <input type="hidden" name="cart" :value="JSON.stringify(cart.map(i => ({variant_id: i.variant_id, quantity: i.quantity, price: i.price})))">
+      </div>
+      <div class="card mt-4 space-y-1 text-sm">
+        <div class="flex justify-between"><span>Subtotal</span><span x-text="'₹' + subtotal.toFixed(2)"></span></div>
+        <div class="flex justify-between"><span>Discount</span><span x-text="'₹' + discount.toFixed(2)"></span></div>
+        <div class="flex justify-between"><span>GST</span><span x-text="'₹' + gst.toFixed(2)"></span></div>
+        <div class="flex justify-between text-lg font-bold border-t pt-2 mt-2"><span>Grand Total</span><span x-text="'₹' + grandTotal.toFixed(2)"></span></div>
+      </div>
+      <button type="submit" class="btn btn-primary w-full mt-4 text-center" :disabled="cart.length === 0">✅ Complete Sale</button>
+    </form>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.min.js"></script>
+<script>
+function posApp() {
+  return {
+    query: '', results: [], cart: [], customerMobile: '', overallDiscount: 0, paymentMethod: 'CASH',
+    subtotal: 0, discount: 0, gst: 0, grandTotal: 0, online: navigator.onLine, syncing: false,
+    scannerOpen: false, scannerStatus: 'Starting camera...', zxingReader: null,
+    init() {
+      window.addEventListener('online', () => { this.online = true; this.syncing = true; setTimeout(() => this.syncing = false, 1200); });
+      window.addEventListener('offline', () => { this.online = false; });
+    },
+    openScanner() {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        alert('Camera access is not available on this device/browser. Use a physical barcode scanner or type the barcode instead.');
+        return;
+      }
+      this.scannerOpen = true;
+      this.scannerStatus = 'Starting camera...';
+      this.$nextTick(() => {
+        if (!this.zxingReader) {
+          this.zxingReader = new ZXing.BrowserMultiFormatReader();
+        }
+        // Prefer the rear/back camera on phones for barcode scanning
+        this.zxingReader.decodeFromConstraints(
+          { video: { facingMode: { ideal: 'environment' } } },
+          'scanner-video',
+          (result, err) => {
+            if (result) {
+              const code = result.getText();
+              this.scannerStatus = 'Found: ' + code;
+              this.query = code;
+              this.closeScanner();
+              this.search();
+              if (navigator.vibrate) navigator.vibrate(120);
+            }
+            // NotFoundException fires continuously while no barcode is in frame - ignore it
+          }
+        ).then(() => { this.scannerStatus = 'Point the camera at a barcode...'; })
+         .catch((err) => {
+            this.scannerStatus = 'Could not access camera: ' + (err.message || err);
+         });
+      });
+    },
+    closeScanner() {
+      this.scannerOpen = false;
+      if (this.zxingReader) {
+        try { this.zxingReader.reset(); } catch (e) {}
+      }
+    },
+    search() {
+      if (!this.query) { this.results = []; return; }
+      fetch("{% url 'sales:search_product' %}?q=" + encodeURIComponent(this.query))
+        .then(r => r.json()).then(d => this.results = d.results)
+        .catch(() => { this.results = []; });
+    },
+    addToCart(r) {
+      const existing = this.cart.find(i => i.variant_id === r.variant_id);
+      if (existing) { existing.quantity += 1; } else {
+        this.cart.push({ variant_id: r.variant_id, product_name: r.product_name, size: r.size, color: r.color,
+                          price: parseFloat(r.price), gst_percent: parseFloat(r.gst_percent), quantity: 1, stock: r.stock });
+      }
+      this.query = ''; this.results = [];
+      this.recalc();
+    },
+    recalc() {
+      this.subtotal = this.cart.reduce((s, i) => s + i.price * i.quantity, 0);
+      this.discount = this.subtotal * (this.overallDiscount / 100);
+      const taxable = this.subtotal - this.discount;
+      this.gst = this.cart.reduce((s, i) => {
+        const lineBase = i.price * i.quantity;
+        const lineShare = this.subtotal > 0 ? (lineBase / this.subtotal) * this.discount : 0;
+        return s + (lineBase - lineShare) * (i.gst_percent / 100);
+      }, 0);
+      this.grandTotal = this.subtotal - this.discount + this.gst;
+    },
+    submitCheck() {
+      if (this.cart.length === 0) { alert('Cart is empty'); return false; }
+      return true;
+    }
+  }
+}
+</script>
+{% endblock %}

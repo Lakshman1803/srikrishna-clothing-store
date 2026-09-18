@@ -1,0 +1,62 @@
+{% extends "base_admin.html" %}
+{% block title %}New Purchase{% endblock %}{% block header %}New Purchase Entry{% endblock %}
+{% block content %}
+<div x-data="purchaseApp()" class="max-w-4xl">
+  <form method="post" action="{% url 'purchases:purchase_create' %}" @submit="return items.length > 0">
+    {% csrf_token %}
+    <div class="card space-y-3 mb-4">
+      <div><label class="text-xs text-gray-500 block mb-1">Supplier</label>
+        <select name="supplier" required class="w-full border rounded px-3 py-2">
+          {% for s in suppliers %}<option value="{{ s.id }}">{{ s.name }}</option>{% endfor %}
+        </select>
+      </div>
+      <div><label class="text-xs text-gray-500 block mb-1">Date</label><input type="date" name="date" required class="w-full border rounded px-3 py-2"></div>
+      <div><label class="text-xs text-gray-500 block mb-1">Payment Status</label>
+        <select name="payment_status" class="w-full border rounded px-3 py-2">
+          <option value="PENDING">Pending</option><option value="PARTIALLY_PAID">Partially Paid</option><option value="PAID">Paid</option>
+        </select>
+      </div>
+      <div><label class="text-xs text-gray-500 block mb-1">Amount Paid Now (₹)</label><input type="number" step="0.01" name="amount_paid" value="0" class="w-full border rounded px-3 py-2"></div>
+    </div>
+
+    <div class="card mb-4">
+      <div class="font-semibold mb-3">Add Product Variants</div>
+      <div class="flex gap-2 mb-3">
+        <select x-model="selectedVariant" class="flex-1 border rounded px-3 py-2">
+          <option value="">-- Select product variant --</option>
+          {% for v in variants %}<option value='{{ v.id }}|{{ v.product.name }}|{{ v.size.label }}|{{ v.color.name }}|{{ v.product.purchase_price }}|{{ v.product.gst_percent }}'>{{ v.product.name }} - {{ v.size.label }} - {{ v.color.name }} ({{ v.sku }})</option>{% endfor %}
+        </select>
+        <input type="number" x-model.number="qty" min="1" value="1" class="w-20 border rounded px-3 py-2" placeholder="Qty">
+        <button type="button" @click="addItem()" class="btn btn-primary">Add</button>
+      </div>
+      <table class="sk-table">
+        <tr><th>Product</th><th>Size</th><th>Color</th><th>Qty</th><th>Price</th><th>GST%</th><th>Total</th><th></th></tr>
+        <template x-for="(item, idx) in items" :key="idx">
+          <tr>
+            <td x-text="item.name"></td><td x-text="item.size"></td><td x-text="item.color"></td>
+            <td x-text="item.quantity"></td><td x-text="'₹' + item.purchase_price"></td><td x-text="item.gst_percent + '%'"></td>
+            <td x-text="'₹' + (item.purchase_price * item.quantity * (1 + item.gst_percent/100)).toFixed(2)"></td>
+            <td><button type="button" @click="items.splice(idx,1)" class="text-red-500">✕</button></td>
+          </tr>
+        </template>
+        <tr x-show="items.length===0"><td colspan="8" class="text-gray-400 text-center py-4">No items added yet.</td></tr>
+      </table>
+    </div>
+    <input type="hidden" name="items" :value="JSON.stringify(items.map(i => ({variant_id: i.variant_id, quantity: i.quantity, purchase_price: i.purchase_price, gst_percent: i.gst_percent})))">
+    <button type="submit" class="btn btn-primary">💾 Save Purchase &amp; Update Stock</button>
+  </form>
+</div>
+<script>
+function purchaseApp() {
+  return {
+    selectedVariant: '', qty: 1, items: [],
+    addItem() {
+      if (!this.selectedVariant) return;
+      const [variant_id, name, size, color, purchase_price, gst_percent] = this.selectedVariant.split('|');
+      this.items.push({ variant_id, name, size, color, purchase_price: parseFloat(purchase_price), gst_percent: parseFloat(gst_percent), quantity: this.qty || 1 });
+      this.selectedVariant = ''; this.qty = 1;
+    }
+  }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,19 @@
+{% extends "base_admin.html" %}
+{% block title %}Settings{% endblock %}{% block header %}Shop Settings{% endblock %}
+{% block content %}
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+  <form method="post" enctype="multipart/form-data" class="card lg:col-span-2 space-y-3">
+    {% csrf_token %}
+    {% for field in form %}
+    <div><label class="text-xs text-gray-500 block mb-1">{{ field.label }}</label>{{ field }}</div>
+    {% endfor %}
+    <button class="btn btn-primary">Save Settings</button>
+  </form>
+  <div class="card space-y-3">
+    <div class="font-semibold">Backup &amp; Restore</div>
+    <div class="text-sm text-gray-500">Last Backup: {{ settings_obj.last_backup_at|date:"d M Y, h:i A"|default:"Never" }}</div>
+    <a href="{% url 'shopsettings:backup' %}" class="btn btn-outline block text-center">⬇ Download Full Backup (JSON)</a>
+    <p class="text-xs text-gray-400">Restore via Django's <code>loaddata</code> management command using the downloaded file.</p>
+  </div>
+</div>
+{% endblock %}

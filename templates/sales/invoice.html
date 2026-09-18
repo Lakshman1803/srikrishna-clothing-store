@@ -1,0 +1,69 @@
+{% extends "base_admin.html" %}
+{% block title %}Invoice {{ sale.invoice_number }}{% endblock %}
+{% block header %}Invoice {{ sale.invoice_number }}{% endblock %}
+{% block content %}
+<div class="max-w-3xl mx-auto card print:shadow-none" id="invoice-area">
+  <div class="flex justify-between items-start border-b pb-4 mb-4">
+    <div>
+      <div class="text-2xl font-bold text-brand-700">{{ shop.shop_name }}</div>
+      <div class="text-sm text-gray-500">{{ shop.tagline }}</div>
+      <div class="text-xs text-gray-500 mt-1">{{ shop.address }}</div>
+      <div class="text-xs text-gray-500">Phone: {{ shop.phone }} {% if shop.gstin %}· GSTIN: {{ shop.gstin }}{% endif %}</div>
+    </div>
+    <div class="text-right text-sm">
+      <div class="font-bold">Invoice: {{ sale.invoice_number }}</div>
+      <div>{{ sale.created_at|date:"d M Y, h:i A" }}</div>
+      <div>Cashier: {{ sale.cashier }}</div>
+    </div>
+  </div>
+
+  <div class="mb-4 text-sm">
+    <span class="font-semibold">Customer:</span> {{ sale.customer.name|default:"Walk-in Customer" }}
+    {% if sale.customer %} · {{ sale.customer.mobile }}{% endif %}
+  </div>
+
+  <table class="sk-table mb-4">
+    <tr><th>Product</th><th>Size</th><th>Color</th><th>Qty</th><th>Price</th><th>Discount</th><th>GST</th><th>Amount</th></tr>
+    {% for item in sale.items.all %}
+    <tr>
+      <td>{{ item.variant.product.name }}</td>
+      <td>{{ item.variant.size.label }}</td>
+      <td>{{ item.variant.color.name }}</td>
+      <td>{{ item.quantity }}</td>
+      <td>₹{{ item.unit_price }}</td>
+      <td>₹{{ item.discount_amount }}</td>
+      <td>{{ item.gst_percent }}%</td>
+      <td>₹{{ item.line_total }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+
+  <div class="flex justify-end">
+    <div class="w-64 text-sm space-y-1">
+      <div class="flex justify-between"><span>Subtotal</span><span>₹{{ sale.subtotal }}</span></div>
+      <div class="flex justify-between"><span>Discount</span><span>₹{{ sale.discount_amount }}</span></div>
+      <div class="flex justify-between"><span>GST</span><span>₹{{ sale.gst_amount }}</span></div>
+      <div class="flex justify-between text-lg font-bold border-t pt-2 mt-2"><span>Grand Total</span><span>₹{{ sale.grand_total }}</span></div>
+      <div class="text-xs text-gray-500 pt-2">Payment: {{ sale.payments.first.get_method_display }}</div>
+      {% if sale.loyalty_points_earned %}<div class="text-xs text-green-600">Loyalty points earned: {{ sale.loyalty_points_earned }}</div>{% endif %}
+    </div>
+  </div>
+
+  {% if qr_data_uri %}
+  <div class="text-center mt-6 border-t pt-4">
+    <div class="text-sm font-semibold mb-2">Scan to pay via UPI</div>
+    <img src="{{ qr_data_uri }}" class="mx-auto w-40 h-40">
+    <div class="text-xs text-gray-500 mt-1">UPI ID: {{ shop.upi_id }}</div>
+  </div>
+  {% endif %}
+
+  <div class="text-center text-sm text-gray-500 mt-6 border-t pt-4">Thank you for shopping at {{ shop.shop_name }}</div>
+</div>
+
+<div class="max-w-3xl mx-auto mt-4 flex gap-2 justify-center print:hidden">
+  <button onclick="window.print()" class="btn btn-outline">🖨 Print</button>
+  <a href="{% url 'sales:invoice_pdf' sale.pk %}" class="btn btn-outline">⬇ Download PDF</a>
+  <a href="{% url 'sales:whatsapp_invoice' sale.pk %}" class="btn btn-primary" target="_blank">📱 Send via WhatsApp</a>
+  <a href="{% url 'sales:pos' %}" class="btn btn-outline">➕ New Sale</a>
+</div>
+{% endblock %}

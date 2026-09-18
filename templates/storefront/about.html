@@ -1,0 +1,13 @@
+{% extends "storefront/public_base.html" %}
+{% block title %}About Us - SRI KRISHNA{% endblock %}
+{% block content %}
+<div class="max-w-3xl mx-auto px-4 py-12">
+  <h1 class="text-3xl font-bold mb-4">About {{ shop_settings.shop_name }}</h1>
+  <p class="text-gray-600 dark:text-gray-300 leading-relaxed">
+    {{ shop_settings.shop_name }} has been dressing families across generations with quality clothing for
+    Men, Women, Boys, Girls and Kids. Our motto, "{{ shop_settings.tagline }}", reflects our commitment to
+    offering fashion that suits every member of your family, at prices that make sense. Visit our store to
+    experience personalised service, quality fabrics, and the latest styles across ethnic and western wear.
+  </p>
+</div>
+{% endblock %}

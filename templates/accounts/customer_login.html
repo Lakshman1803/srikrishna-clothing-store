@@ -1,0 +1,38 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Customer Login - SRI KRISHNA</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>tailwind.config = { theme: { extend: { colors: { brand: { 500:'#c4602c',600:'#a3491f',700:'#7f3818',800:'#5c2a13' } } } } }</script>
+<style>input[type=text] { width:100%; border:1px solid #d1d5db; border-radius:0.5rem; padding:0.6rem 0.75rem; }</style>
+</head>
+<body class="bg-gradient-to-br from-brand-800 to-brand-500 min-h-screen flex items-center justify-center p-4">
+  <div class="bg-white rounded-2xl shadow-xl p-8 w-full max-w-sm">
+    <div class="text-center mb-6">
+      <div class="text-2xl font-bold text-brand-700">SRI KRISHNA</div>
+      <div class="text-sm text-gray-500">Fashion for Every Generation</div>
+      <div class="text-xs text-gray-400 mt-2">Customer Login</div>
+    </div>
+    {% if messages %}{% for m in messages %}<div class="text-sm rounded p-3 mb-4 {% if m.tags == 'error' %}bg-red-100 text-red-700{% else %}bg-blue-100 text-blue-700{% endif %}">{{ m }}</div>{% endfor %}{% endif %}
+
+    {% if step == "mobile" %}
+    <form method="post" class="space-y-4">
+      {% csrf_token %}
+      <input type="hidden" name="step" value="request_otp">
+      <div><label class="text-xs text-gray-500 block mb-1">Mobile Number</label><input type="text" name="mobile" maxlength="10" placeholder="10-digit mobile number" required></div>
+      <button class="w-full bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-lg py-2.5">Send OTP</button>
+    </form>
+    {% else %}
+    <form method="post" class="space-y-4">
+      {% csrf_token %}
+      <input type="hidden" name="step" value="verify_otp">
+      <div><label class="text-xs text-gray-500 block mb-1">Enter OTP sent to {{ mobile }}</label><input type="text" name="otp" maxlength="4" required></div>
+      <button class="w-full bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-lg py-2.5">Verify &amp; Login</button>
+    </form>
+    {% endif %}
+    <div class="text-center text-xs mt-4"><a href="/" class="text-brand-600">← Back to storefront</a></div>
+  </div>
+</body>
+</html>

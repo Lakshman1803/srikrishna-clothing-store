@@ -1,0 +1,16 @@
+{% extends "base_admin.html" %}
+{% block title %}{{ purchase.purchase_invoice_number }}{% endblock %}{% block header %}{{ purchase.purchase_invoice_number }}{% endblock %}
+{% block content %}
+<div class="card max-w-3xl">
+  <div class="mb-4 text-sm"><b>Supplier:</b> {{ purchase.supplier.name }} · <b>Date:</b> {{ purchase.date }} · <b>Status:</b> {{ purchase.get_payment_status_display }}</div>
+  <table class="sk-table">
+    <tr><th>Product</th><th>Size</th><th>Color</th><th>Qty</th><th>Price</th><th>GST%</th><th>Total</th></tr>
+    {% for i in purchase.items.all %}
+    <tr><td>{{ i.variant.product.name }}</td><td>{{ i.variant.size.label }}</td><td>{{ i.variant.color.name }}</td>
+    <td>{{ i.quantity }}</td><td>₹{{ i.purchase_price }}</td><td>{{ i.gst_percent }}%</td><td>₹{{ i.total }}</td></tr>
+    {% endfor %}
+  </table>
+  <div class="text-right text-lg font-bold mt-4">Grand Total: ₹{{ purchase.grand_total }}</div>
+  <div class="text-right text-sm text-gray-500">Amount Paid: ₹{{ purchase.amount_paid }} · Balance Due: ₹{{ purchase.balance_due }}</div>
+</div>
+{% endblock %}

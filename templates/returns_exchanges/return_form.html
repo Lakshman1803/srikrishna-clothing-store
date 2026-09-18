@@ -1,0 +1,68 @@
+{% extends "base_admin.html" %}
+{% block title %}New Return{% endblock %}{% block header %}Process Return / Exchange{% endblock %}
+{% block content %}
+<div x-data="returnApp()" class="max-w-3xl">
+  <div class="card mb-4">
+    <label class="text-xs text-gray-500 block mb-1">Invoice Number</label>
+    <div class="flex gap-2">
+      <input type="text" x-model="invoiceInput" placeholder="e.g. SK-000123" class="flex-1 border rounded px-3 py-2">
+      <button type="button" @click="lookup()" class="btn btn-primary">Search</button>
+    </div>
+    <div x-show="notFound" class="text-red-500 text-sm mt-2">Invoice not found.</div>
+  </div>
+
+  <form method="post" action="{% url 'returns_exchanges:return_create' %}" x-show="invoice" @submit="return selectedItems.length > 0">
+    {% csrf_token %}
+    <input type="hidden" name="invoice_number" :value="invoice ? invoice.invoice_number : ''">
+    <div class="card mb-4">
+      <div class="font-semibold mb-2">Customer: <span x-text="invoice ? invoice.customer : ''"></span></div>
+      <table class="sk-table">
+        <tr><th></th><th>Product</th><th>Size</th><th>Color</th><th>Purchased Qty</th><th>Return Qty</th></tr>
+        <template x-for="item in (invoice ? invoice.items : [])" :key="item.sale_item_id">
+          <tr>
+            <td><input type="checkbox" @change="toggleItem(item, $event.target.checked)"></td>
+            <td x-text="item.product"></td><td x-text="item.size"></td><td x-text="item.color"></td>
+            <td x-text="item.quantity"></td>
+            <td><input type="number" min="1" :max="item.quantity" value="1" @input="updateQty(item, $event.target.value)" class="w-16 border rounded px-2 py-1"></td>
+          </tr>
+        </template>
+      </table>
+    </div>
+    <input type="hidden" name="items" :value="JSON.stringify(selectedItems)">
+    <div class="card space-y-3">
+      <div><label class="text-xs text-gray-500 block mb-1">Type</label>
+        <select name="return_type" class="w-full border rounded px-3 py-2"><option value="RETURN">Return</option><option value="EXCHANGE">Exchange</option></select>
+      </div>
+      <div><label class="text-xs text-gray-500 block mb-1">Resolution</label>
+        <select name="resolution" class="w-full border rounded px-3 py-2">
+          <option value="REFUND">Refund</option><option value="STORE_CREDIT">Store Credit</option><option value="EXCHANGED">Exchanged for another item</option>
+        </select>
+      </div>
+      <div><label class="text-xs text-gray-500 block mb-1">Reason</label><textarea name="reason" required rows="2" class="w-full border rounded px-3 py-2"></textarea></div>
+      <button class="btn btn-primary">Process Return</button>
+    </div>
+  </form>
+</div>
+<script>
+function returnApp() {
+  return {
+    invoiceInput: '', invoice: null, notFound: false, selectedItems: [],
+    lookup() {
+      fetch("{% url 'returns_exchanges:find_invoice' %}?invoice=" + encodeURIComponent(this.invoiceInput))
+        .then(r => r.json()).then(d => {
+          if (d.found) { this.invoice = d; this.notFound = false; this.selectedItems = []; }
+          else { this.invoice = null; this.notFound = true; }
+        });
+    },
+    toggleItem(item, checked) {
+      if (checked) { this.selectedItems.push({ sale_item_id: item.sale_item_id, quantity: 1 }); }
+      else { this.selectedItems = this.selectedItems.filter(i => i.sale_item_id !== item.sale_item_id); }
+    },
+    updateQty(item, val) {
+      const existing = this.selectedItems.find(i => i.sale_item_id === item.sale_item_id);
+      if (existing) existing.quantity = parseInt(val) || 1;
+    }
+  }
+}
+</script>
+{% endblock %}

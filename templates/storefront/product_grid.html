@@ -1,0 +1,11 @@
+{% extends "storefront/public_base.html" %}
+{% block title %}{{ title }} - SRI KRISHNA{% endblock %}
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 py-8">
+  <h1 class="text-2xl font-bold mb-6">{{ title }}</h1>
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+    {% for p in products %}{% include "storefront/_product_card.html" with p=p %}{% endfor %}
+  </div>
+  {% if not products %}<p class="text-gray-400 text-center py-16">No products found.</p>{% endif %}
+</div>
+{% endblock %}

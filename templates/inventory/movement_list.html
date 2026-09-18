@@ -1,0 +1,17 @@
+{% extends "base_admin.html" %}
+{% block title %}Stock Movement - SRI KRISHNA{% endblock %}
+{% block header %}Stock Movement History{% endblock %}
+{% block content %}
+<div class="card overflow-x-auto">
+  <table class="sk-table">
+    <tr><th>Date</th><th>Product</th><th>SKU</th><th>Prev</th><th>Added</th><th>Sold</th><th>Current</th><th>Reason</th><th>Ref</th><th>Employee</th></tr>
+    {% for m in movements %}
+    <tr>
+      <td>{{ m.date|date:"d M Y, h:i A" }}</td><td>{{ m.variant.product.name }}</td><td>{{ m.variant.sku }}</td>
+      <td>{{ m.previous_stock }}</td><td class="text-green-600">{{ m.stock_added }}</td><td class="text-red-600">{{ m.stock_sold }}</td>
+      <td class="font-semibold">{{ m.current_stock }}</td><td>{{ m.get_reason_display }}</td><td>{{ m.reference }}</td><td>{{ m.employee }}</td>
+    </tr>
+    {% empty %}<tr><td colspan="10" class="text-gray-400 text-center py-6">No stock movements yet.</td></tr>{% endfor %}
+  </table>
+</div>
+{% endblock %}

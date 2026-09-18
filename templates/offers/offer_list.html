@@ -1,0 +1,21 @@
+{% extends "base_admin.html" %}
+{% block title %}Offers{% endblock %}{% block header %}Offers &amp; Discounts{% endblock %}
+{% block content %}
+<div class="mb-4"><a href="{% url 'offers:offer_add' %}" class="btn btn-primary">+ Add Offer</a></div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+  {% for o in offers %}
+  <div class="card">
+    <div class="flex justify-between items-start">
+      <div>
+        <div class="font-bold text-brand-700">{{ o.title }}</div>
+        <div class="text-xs text-gray-500">{{ o.get_offer_type_display }} · {{ o.start_date }} to {{ o.end_date }}</div>
+      </div>
+      {% if o.is_currently_running %}<span class="badge badge-green">Running</span>{% else %}<span class="badge badge-gray">Inactive</span>{% endif %}
+    </div>
+    <p class="text-sm mt-2">{{ o.description }}</p>
+    <div class="text-sm mt-2">Discount: <b>{{ o.discount_value }}{% if o.offer_type == "PERCENTAGE" %}%{% else %}₹{% endif %}</b></div>
+    <a href="{% url 'offers:offer_edit' o.pk %}" class="btn btn-outline text-xs mt-3 inline-block">Edit</a>
+  </div>
+  {% empty %}<p class="text-gray-400">No offers created yet.</p>{% endfor %}
+</div>
+{% endblock %}

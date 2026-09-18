@@ -1,0 +1,28 @@
+{% extends "storefront/public_base.html" %}
+{% block title %}Shop Location - SRI KRISHNA{% endblock %}
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 py-12">
+  <h1 class="text-3xl font-bold mb-6">Visit {{ shop.shop_name }}</h1>
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+    <div class="space-y-3 text-sm">
+      <div><b>Address:</b> {{ shop.address }}</div>
+      {% if shop.landmark %}<div><b>Landmark:</b> {{ shop.landmark }}</div>{% endif %}
+      <div><b>Phone:</b> {{ shop.phone }}</div>
+      <div><b>WhatsApp:</b> {{ shop.whatsapp }}</div>
+      <div><b>Opening Hours:</b> {{ shop.business_hours }}</div>
+      <div class="flex gap-2 pt-4">
+        <a href="tel:{{ shop.phone }}" class="btn btn-primary">📞 Call Shop</a>
+        <a href="https://wa.me/91{{ shop.whatsapp }}" target="_blank" class="btn btn-outline">💬 WhatsApp Us</a>
+        {% if shop.google_maps_embed_url %}<a href="{{ shop.google_maps_embed_url }}" target="_blank" class="btn btn-outline">🧭 Get Directions</a>{% endif %}
+      </div>
+    </div>
+    <div class="rounded-xl overflow-hidden border h-64 bg-gray-100 dark:bg-gray-800">
+      {% if shop.google_maps_embed_url %}
+      <iframe src="{{ shop.google_maps_embed_url }}" class="w-full h-full" loading="lazy"></iframe>
+      {% else %}
+      <div class="flex items-center justify-center h-full text-gray-400 text-sm">Map not configured yet. Add a Google Maps embed URL in Settings.</div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

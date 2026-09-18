@@ -1,0 +1,54 @@
+{% extends "base_admin.html" %}
+{% block title %}Inventory - SRI KRISHNA{% endblock %}
+{% block header %}Inventory / Stock{% endblock %}
+{% block content %}
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+  <div class="card"><div class="text-xs text-gray-500">Total Products</div><div class="text-2xl font-bold">{{ total_products }}</div></div>
+  <div class="card"><div class="text-xs text-gray-500">Total Stock</div><div class="text-2xl font-bold">{{ total_stock }}</div></div>
+  <div class="card"><div class="text-xs text-gray-500">Low Stock</div><div class="text-2xl font-bold text-yellow-600">{{ low_stock }}</div></div>
+  <div class="card"><div class="text-xs text-gray-500">Out of Stock</div><div class="text-2xl font-bold text-red-600">{{ out_of_stock }}</div></div>
+</div>
+
+<form method="get" class="card mb-4 flex flex-wrap gap-3 items-end">
+  <div><label class="text-xs text-gray-500 block">Search</label><input type="text" name="q" value="{{ q }}" class="border rounded px-3 py-2"></div>
+  <div><label class="text-xs text-gray-500 block">Category</label>
+    <select name="category" class="border rounded px-3 py-2">
+      <option value="">All</option>
+      {% for c in categories %}<option value="{{ c.id }}" {% if selected_category == c.id|stringformat:"s" %}selected{% endif %}>{{ c.name }}</option>{% endfor %}
+    </select>
+  </div>
+  <div><label class="text-xs text-gray-500 block">Status</label>
+    <select name="status" class="border rounded px-3 py-2">
+      <option value="">All</option>
+      <option value="low" {% if selected_status == "low" %}selected{% endif %}>Low Stock</option>
+      <option value="out" {% if selected_status == "out" %}selected{% endif %}>Out of Stock</option>
+    </select>
+  </div>
+  <button class="btn btn-primary">Filter</button>
+  <a href="{% url 'inventory:movement_list' %}" class="btn btn-outline">📜 Stock Movement History</a>
+</form>
+
+<div class="card overflow-x-auto">
+  <table class="sk-table">
+    <tr><th>Product</th><th>Size</th><th>Color</th><th>SKU</th><th>Barcode</th><th>Stock</th><th>Status</th><th>Adjust</th></tr>
+    {% for v in variants %}
+    <tr>
+      <td>{{ v.product.name }}</td><td>{{ v.size.label }}</td><td>{{ v.color.name }}</td>
+      <td>{{ v.sku }}</td><td>{{ v.barcode }}</td><td class="font-semibold">{{ v.stock_quantity }}</td>
+      <td>
+        {% if v.stock_quantity <= 0 %}<span class="badge badge-red">Out of Stock</span>
+        {% elif v.is_low_stock %}<span class="badge badge-yellow">Low</span>
+        {% else %}<span class="badge badge-green">OK</span>{% endif %}
+      </td>
+      <td>
+        <form method="post" action="{% url 'inventory:adjust_stock' v.id %}" class="flex gap-1">
+          {% csrf_token %}
+          <input type="number" name="new_quantity" value="{{ v.stock_quantity }}" class="w-16 border rounded px-1 py-1 text-xs">
+          <button class="btn btn-outline text-xs">Save</button>
+        </form>
+      </td>
+    </tr>
+    {% empty %}<tr><td colspan="8" class="text-gray-400 text-center py-6">No products found.</td></tr>{% endfor %}
+  </table>
+</div>
+{% endblock %}

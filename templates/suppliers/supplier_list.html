@@ -1,0 +1,18 @@
+{% extends "base_admin.html" %}
+{% block title %}Suppliers{% endblock %}{% block header %}Suppliers{% endblock %}
+{% block content %}
+<div class="mb-4"><a href="{% url 'suppliers:supplier_add' %}" class="btn btn-primary">+ Add Supplier</a></div>
+<div class="card overflow-x-auto">
+  <table class="sk-table">
+    <tr><th>Name</th><th>Company</th><th>Mobile</th><th>GST No.</th><th>Total Purchases</th><th>Pending Payment</th><th></th></tr>
+    {% for s in suppliers %}
+    <tr>
+      <td>{{ s.name }}</td><td>{{ s.company_name }}</td><td>{{ s.mobile }}</td><td>{{ s.gst_number }}</td>
+      <td>{{ s.total_purchases }}</td><td>₹{{ s.pending_payment|floatformat:0 }}</td>
+      <td class="space-x-2"><a href="{% url 'suppliers:supplier_detail' s.pk %}" class="btn btn-outline text-xs">View</a>
+      <a href="{% url 'suppliers:supplier_edit' s.pk %}" class="btn btn-outline text-xs">Edit</a></td>
+    </tr>
+    {% empty %}<tr><td colspan="7" class="text-gray-400 text-center py-6">No suppliers yet.</td></tr>{% endfor %}
+  </table>
+</div>
+{% endblock %}

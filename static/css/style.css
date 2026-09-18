@@ -1,0 +1,20 @@
+[x-cloak] { display: none !important; }
+.sidebar-link { display:block; padding: 0.6rem 1.25rem; color:#f5c3ac; transition: all .15s; border-left: 3px solid transparent;}
+.sidebar-link:hover { background: rgba(255,255,255,0.08); color:#fff; }
+.sidebar-link.active { background: rgba(255,255,255,0.12); color:#fff; border-left-color:#e07f4c; font-weight:600;}
+.card { background: white; border-radius: 0.75rem; box-shadow: 0 1px 3px rgba(0,0,0,0.08); padding:1.25rem; }
+.dark .card { background: #1f2937; }
+table.sk-table { width:100%; border-collapse: collapse; font-size:0.875rem; }
+table.sk-table th { text-align:left; padding:0.6rem 0.75rem; background:#fdf4f0; color:#7f3818; font-weight:600; border-bottom:2px solid #eee; }
+.dark table.sk-table th { background:#374151; color:#fbe4da; }
+table.sk-table td { padding:0.6rem 0.75rem; border-bottom:1px solid #eee; }
+.dark table.sk-table td { border-bottom:1px solid #374151; }
+.btn { display:inline-block; padding:0.5rem 1rem; border-radius:0.5rem; font-size:0.875rem; font-weight:600; cursor:pointer; }
+.btn-primary { background:#c4602c; color:white; }
+.btn-primary:hover { background:#a3491f; }
+.btn-outline { border:1px solid #c4602c; color:#c4602c; }
+.badge { display:inline-block; padding:0.15rem 0.6rem; border-radius:9999px; font-size:0.75rem; font-weight:600; }
+.badge-green { background:#dcfce7; color:#166534; }
+.badge-red { background:#fee2e2; color:#991b1b; }
+.badge-yellow { background:#fef9c3; color:#854d0e; }
+.badge-gray { background:#f3f4f6; color:#374151; }

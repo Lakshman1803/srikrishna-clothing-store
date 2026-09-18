@@ -1,0 +1,22 @@
+{% extends "storefront/public_base.html" %}
+{% block title %}My Account - SRI KRISHNA{% endblock %}
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 py-10">
+  <div class="flex justify-between items-center mb-6">
+    <div>
+      <h1 class="text-2xl font-bold text-brand-700">Hi, {{ customer.name }}</h1>
+      <div class="text-sm text-gray-500">{{ customer.mobile }} · Loyalty Points: <b>{{ customer.loyalty_points }}</b></div>
+    </div>
+    <a href="{% url 'accounts:customer_logout' %}" class="btn btn-outline">Logout</a>
+  </div>
+  <div class="card">
+    <div class="font-semibold mb-3">Purchase History</div>
+    <table class="sk-table">
+      <tr><th>Invoice</th><th>Date</th><th>Amount</th><th>Status</th></tr>
+      {% for s in sales %}
+      <tr><td>{{ s.invoice_number }}</td><td>{{ s.created_at|date:"d M Y" }}</td><td>₹{{ s.grand_total }}</td><td>{{ s.get_status_display }}</td></tr>
+      {% empty %}<tr><td colspan="4" class="text-gray-400 text-center py-6">No purchases yet. Visit us in store!</td></tr>{% endfor %}
+    </table>
+  </div>
+</div>
+{% endblock %}
